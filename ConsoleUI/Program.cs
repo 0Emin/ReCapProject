@@ -9,10 +9,27 @@ namespace ConsoleUI
     {
         static void Main(string[] args)
         {
-            CarManager carManager = new CarManager(new EfCarDal());
-            foreach (var car in carManager.GetAll())
+            //Data Transformation Object => DTOs taşıyacağım objeler..
+            CarTest();
+            //IoC öğrenince new lememe gerek kalmıycak
+            //BrandTest();
+        }
+
+        private static void BrandTest()
+        {
+            BrandManager brandManager = new BrandManager(new EfBrandDal());
+            foreach (var brand in brandManager.GetAll())
             {
-                Console.WriteLine(car.CarId);
+                Console.WriteLine(brand.BrandName);
+            }
+        }
+
+        private static void CarTest()
+        {
+            CarManager carManager = new CarManager(new EfCarDal());
+            foreach (var car in carManager.GetCarDetails())
+            {
+                Console.WriteLine(car.BrandName);
             }
         }
     }
