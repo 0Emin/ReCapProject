@@ -1,4 +1,6 @@
 ﻿using Business.Abstract;
+using Business.Constants;
+using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.DTOs;
@@ -17,41 +19,57 @@ namespace Business.Concrete
             _carDal = carDal;
         }
 
-        public void Add(Car car)
+        public IResult Add(Car car)
         {
-            if (car.CarName.Length >= 2 && car.DailyPrice > 0)
+            if (car.CarName.Length < 2)
             {
-                _carDal.Add(car);
+                //magic strings => stringleri ayrı ayrı yazmak (sorun), bu yüzden Messages bölümü oluşturduk
+                return new ErrorResult(Messages.CarNameInvalid);
             }
-            else
-            {
-                throw new NotImplementedException("Araba ismi minimum 2 karakter olmalı ve araba günlük fiyatı 0'dan büyük olmalıdır");
+            _carDal.Add(car);
+            return new SuccessResult(Messages.CarAdded);
+            //if (car.CarName.Length >= 2 && car.DailyPrice > 0)
+            //{
+            //    _carDal.Add(car);
+            //    return new Result(true,"Araba eklendi");   //bu şekilde yazabilmemiz için constructor lazım
+            //}
+            //else
+            //{
+            //    throw new NotImplementedException("Araba ismi minimum 2 karakter olmalı ve araba günlük fiyatı 0'dan büyük olmalıdır");
+            //}
+        }
+
+        //Aşağıdaki yere IDataResult yazınca return kısmında _carDal ın altını çizmişti, bir "Data" da dönmesini bekliyomuş. Bu yüzden DataResult oluşturduk.
+        public IDataResult<List<Car>> GetAll()
+        {
+            if (DateTime.Now.Hour == 22)
+            {                                         //Generate field yaptık ampulden                     
+                return new ErrorDataResult<List<Car>>(Messages.MaintenanceTime);
             }
+                                                                     //Generate field yaptık ampulden               
+            return new SuccessDataResult<List<Car>>(_carDal.GetAll(), Messages.CarsListed);
 
+            //data =>(_carDal.GetAll());
         }
 
-        public List<Car> GetAll()
+        public IDataResult<Car> GetById(int carId)
         {
-            //iş kodları
-            //yetkisi var mı ? gibi süreçlerden geçtikten sonra
-            // bize ilgili verileri verebilir.
-            return _carDal.GetAll();
-
+            return new SuccessDataResult<Car> (_carDal.Get(c => c.CarId == carId));
         }
 
-        public List<CarDetailDto> GetCarDetails()
+        public IDataResult<List<CarDetailDto>> GetCarDetails()
         {
-            return _carDal.GetCarDetails();
+            return new SuccessDataResult<List<CarDetailDto>>(_carDal.GetCarDetails());
         }
 
-        public List<Car> GetCarsByBrandId(int id)
+        public IDataResult<List<Car>> GetCarsByBrandId(int id)
         {
-            return _carDal.GetAll(c => c.BrandId == id);
+            return new SuccessDataResult<List<Car>>(_carDal.GetAll(c => c.BrandId == id));
         }
 
-        public List<Car> GetCarsByColorId(int colorid)
+        public IDataResult<List<Car>> GetCarsByColorId(int colorid)
         {
-            return _carDal.GetAll(c => c.ColorId == colorid);
+            return new SuccessDataResult<List<Car>>(_carDal.GetAll(c => c.ColorId == colorid));
         }
     }
 }
