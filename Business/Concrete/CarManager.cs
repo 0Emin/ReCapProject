@@ -42,7 +42,7 @@ namespace Business.Concrete
         //Aşağıdaki yere IDataResult yazınca return kısmında _carDal ın altını çizmişti, bir "Data" da dönmesini bekliyomuş. Bu yüzden DataResult oluşturduk.
         public IDataResult<List<Car>> GetAll()
         {
-            if (DateTime.Now.Hour == 22)
+            if (DateTime.Now.Hour == 9)
             {                                         //Generate field yaptık ampulden                     
                 return new ErrorDataResult<List<Car>>(Messages.MaintenanceTime);
             }
