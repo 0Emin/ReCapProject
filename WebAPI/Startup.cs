@@ -30,8 +30,8 @@ namespace WebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSingleton<ICarService, CarManager>(); //bu kodu biz yazdýk, bizim yerimize arka planda carManager ý new liyor. Singleton performansý da artýrýyor.
-            services.AddSingleton<ICarDal, EfCarDal>();   // Katmanlar birbirlerine _carDal gibi yapýlarla baðlý olduðu için (CarManager ICarDal a baðlý çünkü) bu kodu yazdýk.
+            //services.AddSingleton<ICarService, CarManager>(); //bu kodu biz yazdýk, bizim yerimize arka planda carManager ý new liyor. Singleton performansý da artýrýyor.
+            //services.AddSingleton<ICarDal, EfCarDal>();   // Katmanlar birbirlerine _carDal gibi yapýlarla baðlý olduðu için (CarManager ICarDal a baðlý çünkü) bu kodu yazdýk.
             //Bunlar bizim için IoC Container yapýsý sunuyor: Autofac, Ninject, CastleWindsor, StructureMap, LightInject, DryInject
         }   //AOP imkanýyla kodlarýmýzý yazýyor olucaz.
 

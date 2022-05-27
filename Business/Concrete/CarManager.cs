@@ -1,9 +1,12 @@
 ﻿using Business.Abstract;
 using Business.Constants;
+using Business.ValidationRules.FluentValidation;
+using Core.CrossCuttingConcerns.Validators.FluentValidation;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.DTOs;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,11 +24,22 @@ namespace Business.Concrete
 
         public IResult Add(Car car)
         {
-            if (car.CarName.Length < 2)
-            {
-                //magic strings => stringleri ayrı ayrı yazmak (sorun), bu yüzden Messages bölümü oluşturduk
-                return new ErrorResult(Messages.CarNameInvalid);
-            }
+            //business codes
+            //validation ( doğrulama )
+
+            //fluent validation sayesinde aşağıdaki if li kodlardan kurtulcaz
+
+            //Aşağıdaki kodlarımız bir validation yapacağımız zaman yazacağımız standart kodlarımızdır
+            // (Buraları da refactor edeceğiz )
+            
+            ValidationTool.Validate(new CarValidator(), car);
+
+
+            //if (car.CarName.Length < 2)
+            //{
+            //    //magic strings => stringleri ayrı ayrı yazmak (sorun), bu yüzden Messages bölümü oluşturduk
+            //    return new ErrorResult(Messages.CarNameInvalid);
+            //}
             _carDal.Add(car);
             return new SuccessResult(Messages.CarAdded);
             //if (car.CarName.Length >= 2 && car.DailyPrice > 0)
@@ -39,6 +53,7 @@ namespace Business.Concrete
             //}
         }
 
+
         //Aşağıdaki yere IDataResult yazınca return kısmında _carDal ın altını çizmişti, bir "Data" da dönmesini bekliyomuş. Bu yüzden DataResult oluşturduk.
         public IDataResult<List<Car>> GetAll()
         {
@@ -46,7 +61,7 @@ namespace Business.Concrete
             {                                         //Generate field yaptık ampulden                     
                 return new ErrorDataResult<List<Car>>(Messages.MaintenanceTime);
             }
-                                                                     //Generate field yaptık ampulden               
+            //Generate field yaptık ampulden               
             return new SuccessDataResult<List<Car>>(_carDal.GetAll(), Messages.CarsListed);
 
             //data =>(_carDal.GetAll());
@@ -54,7 +69,7 @@ namespace Business.Concrete
 
         public IDataResult<Car> GetById(int carId)
         {
-            return new SuccessDataResult<Car> (_carDal.Get(c => c.CarId == carId));
+            return new SuccessDataResult<Car>(_carDal.Get(c => c.CarId == carId));
         }
 
         public IDataResult<List<CarDetailDto>> GetCarDetails()
