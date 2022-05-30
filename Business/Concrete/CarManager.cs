@@ -3,6 +3,7 @@ using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validators.FluentValidation;
+using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
@@ -10,6 +11,7 @@ using Entities.DTOs;
 using FluentValidation;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Business.Concrete
@@ -17,10 +19,12 @@ namespace Business.Concrete
     public class CarManager : ICarService
     {
         ICarDal _carDal;
+        IBrandService _brandService; //_brandDal şeklinde yapsaydık olmaz 
 
-        public CarManager(ICarDal carDal)
+        public CarManager(ICarDal carDal, IBrandService brandService)
         {
             _carDal = carDal;
+            _brandService = brandService;
         }
 
         [ValidationAspect(typeof(CarValidator))] //Add metodunu doğrula, CarValidator ü kullanarak 
@@ -29,19 +33,15 @@ namespace Business.Concrete
             //business codes
             //validation ( doğrulama )
 
-            //fluent validation sayesinde aşağıdaki if li kodlardan kurtulcaz
+            //Ders 13 II. Kısım:  Bir markada en fazla 10 araba olabilir. En aşağı in
+            var result = BusinessRules.Run(CheckIfCarNameExist(car.CarName),
+                CheckIfCarCountOfBrandCorrect(car.BrandId),
+                CheckIfBrandLimitExceded(car.BrandId));
 
-            //Aşağıdaki kodlarımız bir validation yapacağımız zaman yazacağımız standart kodlarımızdır
-            // (Buraları da refactor edeceğiz )
-
-            
-
-
-            //if (car.CarName.Length < 2)
-            //{
-            //    //magic strings => stringleri ayrı ayrı yazmak (sorun), bu yüzden Messages bölümü oluşturduk
-            //    return new ErrorResult(Messages.CarNameInvalid);
-            //}
+            if (result != null)
+            {
+                return result;
+            }
             _carDal.Add(car);
             return new SuccessResult(Messages.CarAdded);
             //if (car.CarName.Length >= 2 && car.DailyPrice > 0)
@@ -62,7 +62,7 @@ namespace Business.Concrete
             if (DateTime.Now.Hour == 9)
             {                                         //Generate field yaptık ampulden                     
                 return new ErrorDataResult<List<Car>>(Messages.MaintenanceTime);
-            }
+            }                                                 //bakım
             //Generate field yaptık ampulden               
             return new SuccessDataResult<List<Car>>(_carDal.GetAll(), Messages.CarsListed);
 
@@ -88,5 +88,67 @@ namespace Business.Concrete
         {
             return new SuccessDataResult<List<Car>>(_carDal.GetAll(c => c.ColorId == colorid));
         }
+
+        [ValidationAspect(typeof(CarValidator))]
+        public IResult Update(Car car)
+        {
+            if (CheckIfCarCountOfBrandCorrect(car.BrandId).Success)
+            {
+                _carDal.Update(car);
+
+                return new SuccessResult(Messages.CarUpdated);
+            }
+            return new ErrorResult();
+        }
+
+        private IResult CheckIfCarCountOfBrandCorrect(int brandId)
+        {
+            //Select count(*) from cars where brandId=1
+            var result = _carDal.GetAll(c => c.BrandId == brandId).Count;
+            if (result >= 10)
+            {
+                return new ErrorResult(Messages.CarCountOfBrandError);
+            }
+            return new SuccessResult();
+        }
+
+        private IResult CheckIfCarNameExist(string carName)
+        {
+
+            var result = _carDal.GetAll(c => c.CarName == carName).Count();
+            if (result > 1)
+            {
+                return new ErrorResult(Messages.CarNameAlreadyExist);
+            }
+            return new SuccessResult();
+        }
+
+        //private IResult CheckIfCarNameExist(string carName)
+        //{
+
+        //    var result = _carDal.GetAll(c => c.CarName == carName).Any();  //Any burada var mı ? görevi görüyor
+        //    if (result)
+        //    {
+        //        return new ErrorResult(Messages.CarNameAlreadyExist);
+        //    }
+        //    return new SuccessResult();
+        //}
+
+        private IResult CheckIfBrandLimitExceded(int brandId)
+        {
+
+            var result = _brandService.GetAll();
+
+            if (result.Data.Count > 15)              //Eğer mevcut marka sayısı 15i geçtiyse yeni araba ekleme 
+            {
+                return new ErrorResult(Messages.BrandLimitExceded);
+            }
+
+            return new SuccessResult();
+
+
+            // Araba için brand nasıl yorumlanıyor? sorusunu aradaığımız için bu kısımda yazdığımız kodda. CarManager kısmına yazdık bu kodları
+        }
+
     }
 }

@@ -12,9 +12,10 @@ namespace Business.Abstract
         IDataResult<List<Car>> GetAll();
         IDataResult<List<Car>> GetCarsByBrandId(int id);
         IDataResult<List<Car>> GetCarsByColorId(int colorId);
-        IResult Add(Car car); //bu voidli diye bunu ayrı tuttuk, void yerine IResult yazdık
         IDataResult<List<CarDetailDto>> GetCarDetails();
         IDataResult<Car> GetById(int carId);
+        IResult Add(Car car); //bu voidli diye bunu ayrı tuttuk, void yerine IResult yazdık
+        IResult Update(Car car);
     }
 }
 
