@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Business.BusinessAspects.Autofac;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
@@ -26,7 +27,7 @@ namespace Business.Concrete
             _carDal = carDal;
             _brandService = brandService;
         }
-
+        [SecuredOperation("car.add, admin")]
         [ValidationAspect(typeof(CarValidator))] //Add metodunu doğrula, CarValidator ü kullanarak 
         public IResult Add(Car car)
         {
