@@ -8,9 +8,9 @@ using System.Text;
 
 namespace Core.DataAccess.EntityFramework
 {
-    public class EfEntityRepositoryBase<TEntity,TContext>:IEntityRepository<TEntity>
-        where TEntity:class,IEntity,new()
-        where TContext:DbContext,new()
+    public class EfEntityRepositoryBase<TEntity, TContext> : IEntityRepository<TEntity>
+        where TEntity : class, IEntity, new()
+        where TContext : DbContext, new()
     {
         public void Add(TEntity entity)
         {
@@ -38,7 +38,7 @@ namespace Core.DataAccess.EntityFramework
         {
             using (TContext context = new TContext())
             {
-                return context.Set<TEntity>().SingleOrDefault(filter);
+                return context.Set<TEntity>().SingleOrDefault(filter); 
             }
         }
 
@@ -50,7 +50,7 @@ namespace Core.DataAccess.EntityFramework
                 return filter == null
                     ? context.Set<TEntity>().ToList()                    //bu kısım select * from cars döndürüyor: Filtre null mı ? evetse getir hepsini
                     : context.Set<TEntity>().Where(filter).ToList();     //burada da sadece filtreli kısmı
-            }
+            }                  //!!!!!!!!!!!!
         }
 
         public void Update(TEntity entity)

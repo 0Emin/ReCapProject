@@ -16,6 +16,7 @@ namespace Business.Abstract
         IDataResult<Car> GetById(int carId);
         IResult Add(Car car); //bu voidli diye bunu ayrı tuttuk, void yerine IResult yazdık
         IResult Update(Car car);
+        IResult AddTransactionalTest(Car car);
     }
 }
 

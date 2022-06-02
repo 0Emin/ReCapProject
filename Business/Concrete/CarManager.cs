@@ -2,6 +2,9 @@
 using Business.BusinessAspects.Autofac;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Performance;
+using Core.Aspects.Autofac.Transaction;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validators.FluentValidation;
 using Core.Utilities.Business;
@@ -29,6 +32,7 @@ namespace Business.Concrete
         }
         [SecuredOperation("car.add, admin")]
         [ValidationAspect(typeof(CarValidator))] //Add metodunu doğrula, CarValidator ü kullanarak 
+        [CacheRemoveAspect("ICarService.Get")]
         public IResult Add(Car car)
         {
             //business codes
@@ -58,6 +62,8 @@ namespace Business.Concrete
 
 
         //Aşağıdaki yere IDataResult yazınca return kısmında _carDal ın altını çizmişti, bir "Data" da dönmesini bekliyomuş. Bu yüzden DataResult oluşturduk.
+        [CacheAspect] //key,value ; key cache e verdiğimiz isim ::::: Parametre yoksa mesela GetAll() işlemini : Business.Concrete.CarMnager.GetAll
+                      //Parametreli olanı ise Business.Concrete.CarManager.GetById(1) gibi cache yapabiliriz 
         public IDataResult<List<Car>> GetAll()
         {
             if (DateTime.Now.Hour == 9)
@@ -69,7 +75,8 @@ namespace Business.Concrete
 
             //data =>(_carDal.GetAll());
         }
-
+        [CacheAspect]
+        [PerformanceAspect(5)] // bu metodun çalışması 5 saniyeyi geçerse beni uyar,**** eğer bunu Core daki inerceptor lere koyarsak sistemdeki her şeyi takip eder *****
         public IDataResult<Car> GetById(int carId)
         {
             return new SuccessDataResult<Car>(_carDal.Get(c => c.CarId == carId));
@@ -91,6 +98,7 @@ namespace Business.Concrete
         }
 
         [ValidationAspect(typeof(CarValidator))]
+        [CacheRemoveAspect("ICarService.Get")] // Sadece get yazsaydık bellekteki içerisinde get olan tüm keyleri iptal etmiş olurduk. Yanş ürünü güncellemişken her yerdeki cache i silerdik
         public IResult Update(Car car)
         {
             if (CheckIfCarCountOfBrandCorrect(car.BrandId).Success)
@@ -151,5 +159,10 @@ namespace Business.Concrete
             // Araba için brand nasıl yorumlanıyor? sorusunu aradaığımız için bu kısımda yazdığımız kodda. CarManager kısmına yazdık bu kodları
         }
 
+        [TransactionScopeAspect]
+        public IResult AddTransactionalTest(Car car)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

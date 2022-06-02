@@ -27,7 +27,7 @@ namespace WebAPI.Controllers
         {
             //Dependency chain --
 
-            var result = _carService.GetAll();
+            var result = _carService.GetAll(); 
             if (result.Success)
             {
                 return Ok(result);

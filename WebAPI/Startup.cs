@@ -74,7 +74,7 @@ namespace WebAPI
             {
                 app.UseDeveloperExceptionPage();
             }
-            //Middleware; Sýrasýyla devreye sokuyoruz aþaðý kýsma yazdýklarýmýzý
+            //Middleware; Sýrasýyla devreye sokuyoruz aþaðý kýsma yazdýklarýmýzý. Alttakiler bizim middleware lerimiz
             app.UseHttpsRedirection();
 
             app.UseRouting();
