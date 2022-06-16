@@ -8,9 +8,9 @@ namespace Entities.Concrete
     public class Rent:IEntity
     {
         public int RentId { get; set; }
+        public int CarId { get; set; }
         public int CustomerId { get; set; }
-        public int EmployeeId { get; set; }
-        public int RentDate { get; set; }
-        public string ShipCity { get; set; }
+        public DateTime RentDate { get; set; }
+        public DateTime? ReturnDate { get; set; }
     }
 }

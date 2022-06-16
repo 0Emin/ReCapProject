@@ -15,14 +15,14 @@ namespace Business.ValidationRules.FluentValidation
             RuleFor(c => c.DailyPrice).NotEmpty();
             RuleFor(c => c.DailyPrice).GreaterThan(0);  // Günlük Fiyat 0 dan büyük olmalıdır.
             RuleFor(c => c.DailyPrice).GreaterThanOrEqualTo(200).When(c => c.CarId == 1); //id si 1 olan arabalarımın günlük fiyatı 200 e eşit veya daha büyük olmalı
-            RuleFor(c => c.CarName).Must(StartWithA).WithMessage("Arabalar 'A' harfi ile başlamalı");
+            //RuleFor(c => c.CarName).Must(StartWithA).WithMessage("Arabalar 'A' harfi ile başlamalı");
 
             //Aralarına "." koyarak tek satırda da yazabilirdik hepsini, fakat SOLİD in S harfine aykırı. Mesela 18. satırdaki gibi when li bir şey yazmak isteyebiliriz sonradan, sorun çıkabilir
         }
 
-        private bool StartWithA(string arg)
-        {
-            return arg.StartsWith("A");
-        }
+        //private bool StartWithA(string arg)
+        //{
+        //    return arg.StartsWith("A");
+        //}
     }
 }

@@ -1,9 +1,13 @@
 ﻿using Business.Abstract;
+using Business.Constants.Messages;
+using Core.Aspects.Autofac.Validation;
+using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Business.Concrete
@@ -17,17 +21,71 @@ namespace Business.Concrete
             _brandDal = brandDal;
         }
 
+        public IResult Add(Brand brand)
+        {
+            IResult result = BusinessRules.Run(CheckIfBrandNameExist(brand.BrandName));
+            if (result != null)
+            {
+                return new ErrorResult();
+            }
+            _brandDal.Add(brand);
+            return new SuccessResult(BrandMessages.BrandAdded);
+        }
+
+        public IResult Delete(Brand brand)
+        {
+            IResult result = BusinessRules.Run(CheckBrandExist(brand.BrandId));
+            if (result != null)
+            {
+                return new ErrorResult();
+            }
+            _brandDal.Delete(brand);
+            return new SuccessResult(BrandMessages.BrandDeleted);
+        }
+      
+        public IResult Update(Brand brand)
+        {
+            IResult result = BusinessRules.Run(CheckIfBrandNameExist(brand.BrandName), CheckBrandExist(brand.BrandId));
+            if (result != null)
+            {
+                return new ErrorResult();
+            }
+            _brandDal.Update(brand);
+            return new SuccessResult(BrandMessages.BrandUpdated);
+        }
+
         public IDataResult<List<Brand>> GetAll()
         {
-            //İş kodları
-            return new SuccessDataResult<List<Brand>>(_brandDal.GetAll());
+            return new SuccessDataResult<List<Brand>>(_brandDal.GetAll(), BrandMessages.BrandListed);
         }
 
         public IDataResult<Brand> GetById(int brandId)
         {
-            return new SuccessDataResult<Brand>(_brandDal.Get(b => b.BrandId == brandId));
+            IResult result = BusinessRules.Run(CheckBrandExist(brandId));
+            if (result != null)
+            {
+                return new ErrorDataResult<Brand>();
+            }
+            return new SuccessDataResult<Brand>(_brandDal.Get(b => b.BrandId == brandId), BrandMessages.BrandGet);
         }
-
-
+        private IResult CheckIfBrandNameExist(string brandName)
+        {
+            var result = _brandDal.GetAll(b => b.BrandName == brandName).Any();
+            if (result == true)
+            {
+                return new ErrorResult(BrandMessages.SameNameExist);
+            }
+            return new SuccessResult();
+        }
+        private IResult CheckBrandExist(int brandId)
+        {
+            var result = _brandDal.GetAll(b => b.BrandId == brandId).Any();
+            if (!result)
+            {
+                return new ErrorResult("marka bulunamadı.");
+            }
+            return new SuccessResult();
+        }
     }
+
 }

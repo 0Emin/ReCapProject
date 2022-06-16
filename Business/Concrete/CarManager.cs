@@ -1,23 +1,19 @@
 ﻿using Business.Abstract;
 using Business.BusinessAspects.Autofac;
-using Business.Constants;
+using Business.Constants.Messages;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Caching;
 using Core.Aspects.Autofac.Performance;
 using Core.Aspects.Autofac.Transaction;
 using Core.Aspects.Autofac.Validation;
-using Core.CrossCuttingConcerns.Validators.FluentValidation;
 using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.DTOs;
-using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
 namespace Business.Concrete
 {
     public class CarManager : ICarService
@@ -30,7 +26,7 @@ namespace Business.Concrete
             _carDal = carDal;
             _brandService = brandService;
         }
-        [SecuredOperation("car.add, admin")]
+        //[SecuredOperation("car.add, admin")]
         [ValidationAspect(typeof(CarValidator))] //Add metodunu doğrula, CarValidator ü kullanarak 
         [CacheRemoveAspect("ICarService.Get")]
         public IResult Add(Car car)
@@ -39,7 +35,7 @@ namespace Business.Concrete
             //validation ( doğrulama )
 
             //Ders 13 II. Kısım:  Bir markada en fazla 10 araba olabilir. En aşağı in
-            var result = BusinessRules.Run(CheckIfCarNameExist(car.CarName),
+            IResult result = BusinessRules.Run(CheckIfCarNameExist(car.CarName),
                 CheckIfCarCountOfBrandCorrect(car.BrandId),
                 CheckIfBrandLimitExceded(car.BrandId));
 
@@ -48,7 +44,7 @@ namespace Business.Concrete
                 return result;
             }
             _carDal.Add(car);
-            return new SuccessResult(Messages.CarAdded);
+            return new SuccessResult(CarMessages.CarAdded);
             //if (car.CarName.Length >= 2 && car.DailyPrice > 0)
             //{
             //    _carDal.Add(car);
@@ -68,10 +64,10 @@ namespace Business.Concrete
         {
             if (DateTime.Now.Hour == 9)
             {                                         //Generate field yaptık ampulden                     
-                return new ErrorDataResult<List<Car>>(Messages.MaintenanceTime);
+                return new ErrorDataResult<List<Car>>(CarMessages.MaintenanceTime);
             }                                                 //bakım
             //Generate field yaptık ampulden               
-            return new SuccessDataResult<List<Car>>(_carDal.GetAll(), Messages.CarsListed);
+            return new SuccessDataResult<List<Car>>(_carDal.GetAll(), CarMessages.CarsListed);
 
             //data =>(_carDal.GetAll());
         }
@@ -105,7 +101,7 @@ namespace Business.Concrete
             {
                 _carDal.Update(car);
 
-                return new SuccessResult(Messages.CarUpdated);
+                return new SuccessResult(CarMessages.CarUpdated);
             }
             return new ErrorResult();
         }
@@ -116,7 +112,7 @@ namespace Business.Concrete
             var result = _carDal.GetAll(c => c.BrandId == brandId).Count;
             if (result >= 10)
             {
-                return new ErrorResult(Messages.CarCountOfBrandError);
+                return new ErrorResult(CarMessages.CarCountOfBrandError);
             }
             return new SuccessResult();
         }
@@ -127,7 +123,7 @@ namespace Business.Concrete
             var result = _carDal.GetAll(c => c.CarName == carName).Count();
             if (result > 1)
             {
-                return new ErrorResult(Messages.CarNameAlreadyExist);
+                return new ErrorResult(CarMessages.CarNameAlreadyExist);
             }
             return new SuccessResult();
         }
@@ -150,7 +146,7 @@ namespace Business.Concrete
 
             if (result.Data.Count > 15)              //Eğer mevcut marka sayısı 15i geçtiyse yeni araba ekleme 
             {
-                return new ErrorResult(Messages.BrandLimitExceded);
+                return new ErrorResult(CarMessages.BrandLimitExceded);
             }
 
             return new SuccessResult();
@@ -163,6 +159,11 @@ namespace Business.Concrete
         public IResult AddTransactionalTest(Car car)
         {
             throw new NotImplementedException();
+        }
+
+        public IDataResult<List<Car>> GetAllByBrandId(int brandId)
+        {
+            return new SuccessDataResult<List<Car>>(_carDal.GetAll(c => c.BrandId == brandId));
         }
     }
 }

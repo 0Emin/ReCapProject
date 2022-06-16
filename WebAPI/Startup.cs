@@ -45,6 +45,8 @@ namespace WebAPI
 
             //services.AddSingleton<HttpContextAccessor, HttpContextAccessor>();  //15. DERS BAÞINDA YAZILDI sonra sildik core da zaten CoreModule kýsmýnda buralarý kurumsallaþtýrmaya baþladýk-----------------
 
+            services.AddCors();
+
             var tokenOptions = Configuration.GetSection("TokenOptions").Get<TokenOptions>();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)   // Bu sistemde Authentication olarak JwtBearer kullanýlacak. Bunu AspNET WebAPI ya diyoruz. 
@@ -74,7 +76,10 @@ namespace WebAPI
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.ConfigureCustomExceptionMiddleware();
             //Middleware; Sýrasýyla devreye sokuyoruz aþaðý kýsma yazdýklarýmýzý. Alttakiler bizim middleware lerimiz
+            app.UseCors(builder=>builder.WithOrigins("http://localhost:4200").AllowAnyHeader()); //buradan bir istek gelirse ona izin ver. 
+
             app.UseHttpsRedirection();
 
             app.UseRouting();

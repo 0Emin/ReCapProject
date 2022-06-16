@@ -1,4 +1,5 @@
 ﻿using Business.Constants;
+using Business.Constants.Messages;
 using Castle.DynamicProxy;
 using Core.Extensions;
 using Core.Utilities.Interceptors;
@@ -35,7 +36,7 @@ namespace Business.BusinessAspects.Autofac
                     return;
                 }
             }
-            throw new Exception(Messages.AuthorizationDenied);
+            throw new Exception(CarMessages.AuthorizationDenied);
         }
     }
 }

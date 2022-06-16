@@ -1,5 +1,6 @@
 ﻿using Business.Abstract;
 using Business.Constants;
+using Business.Constants.Messages;
 using Core.Utilities.Business;
 using Core.Utilities.Helpers.FileHelper;
 using Core.Utilities.Results;
@@ -8,7 +9,6 @@ using Entities.Concrete;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Business.Concrete
 {
@@ -69,10 +69,10 @@ namespace Business.Concrete
 
             if (DateTime.Now.Hour == 14)
             {
-                return new ErrorDataResult<List<CarImage>>(Messages.MaintenanceTime);
+                return new ErrorDataResult<List<CarImage>>(CarMessages.MaintenanceTime);
             }
 
-            return new SuccessDataResult<List<CarImage>>(_carImageDal.GetAll(), Messages.CarsListed);
+            return new SuccessDataResult<List<CarImage>>(_carImageDal.GetAll(), CarMessages.CarsListed);
         }
         private IResult CheckIfCarImageLimit(int carId)
         {

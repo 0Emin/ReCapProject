@@ -1,8 +1,8 @@
-﻿namespace Business.Constants
+﻿namespace Business.Constants.Messages
 {
     //Constant: sabit demek
     //newlemek zorunda kalmamak için static verdik
-    public static class Messages
+    public static class CarMessages
     {
         public static string CarAdded = "Araba Eklendi";
         public static string CarNameInvalid = "Araba ismi geçersiz";

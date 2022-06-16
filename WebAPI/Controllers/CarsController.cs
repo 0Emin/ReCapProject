@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 
 namespace WebAPI.Controllers
-{
+{             //Controller ın ismi
     [Route("api/[controller]")]    //Bir class la ilgili bilgi verme, onu imzalama yöntemidir attribute
     [ApiController] //=> ATTRIBUTE, Java da ANNOTATION
     public class CarsController : ControllerBase
@@ -27,7 +27,7 @@ namespace WebAPI.Controllers
         {
             //Dependency chain --
 
-            var result = _carService.GetAll(); 
+            var result = _carService.GetAll();
             if (result.Success)
             {
                 return Ok(result);
@@ -54,6 +54,17 @@ namespace WebAPI.Controllers
             {
                 return Ok(result);
 
+            }
+            return BadRequest(result);
+        }
+
+        [HttpGet("getbybrand")]
+        public IActionResult GetByBrand(int brandId)
+        {
+            var result = _carService.GetAllByBrandId(brandId);
+            if (result.Success)
+            {
+                return Ok(result);
             }
             return BadRequest(result);
         }
