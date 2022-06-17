@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Entities.Concrete
 {
-    public class Rent:IEntity
+    public class Rental:IEntity
     {
-        public int RentId { get; set; }
+        public int RentalId { get; set; }
         public int CarId { get; set; }
         public int CustomerId { get; set; }
         public DateTime RentDate { get; set; }

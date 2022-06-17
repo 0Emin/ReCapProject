@@ -1,6 +1,6 @@
 ﻿using Business.Abstract;
-using Business.Constants.Messages;
 using Core.Entities.Concrete;
+using Core.Utilities.Business;
 using Core.Utilities.Results;
 using Core.Utilities.Security.Hashing;
 using Core.Utilities.Security.JWT;
@@ -10,8 +10,8 @@ namespace Business.Concrete
 {
     public class AuthManager : IAuthService
     {
-        private IUserService _userService;
-        private ITokenHelper _tokenHelper;
+        private readonly IUserService _userService;
+        private readonly ITokenHelper _tokenHelper;
 
         public AuthManager(IUserService userService, ITokenHelper tokenHelper)
         {
@@ -19,7 +19,7 @@ namespace Business.Concrete
             _tokenHelper = tokenHelper;
         }
 
-        public IDataResult<User> Register(UserForRegisterDto userForRegisterDto, string password)//Kayıt olmak için gerekli operasyonlar; Kayıt olma isteyenden Dto sunu ve password istiyoruz.  Password derğer, UserForRegisterDto nun içinde de var aslında ama, fazladan yazılmış olabilir "string password"
+        public IDataResult<User> Register(UserForRegisterDto userForRegisterDto, string password)
         {
             byte[] passwordHash, passwordSalt;
             HashingHelper.CreatePasswordHash(password, out passwordHash, out passwordSalt);
@@ -33,30 +33,31 @@ namespace Business.Concrete
                 Status = true
             };
             _userService.Add(user);
-            return new SuccessDataResult<User>(user, CarMessages.UserRegistered);
+            return new SuccessDataResult<User>(user, "kayıt olundu");
         }
 
         public IDataResult<User> Login(UserForLoginDto userForLoginDto)
         {
             var userToCheck = _userService.GetByMail(userForLoginDto.Email);
-            if (userToCheck == null)
+            if (userToCheck.Data == null)
             {
-                return new ErrorDataResult<User>(CarMessages.UserNotFound);
+                return new ErrorDataResult<User>("kullanıcı bulunamadı");
             }
 
-            if (!HashingHelper.VerifyPasswordHash(userForLoginDto.Password, userToCheck.PasswordHash, userToCheck.PasswordSalt))
+            if (!HashingHelper.VerifyPasswordHash(userForLoginDto.Password, userToCheck.Data.PasswordHash, userToCheck.Data.PasswordSalt))
             {
-                return new ErrorDataResult<User>(CarMessages.PasswordError);
+                return new ErrorDataResult<User>("yanlış şifre");
             }
 
-            return new SuccessDataResult<User>(userToCheck, CarMessages.SuccessfulLogin);
+            return new SuccessDataResult<User>(userToCheck.Data, "başarılı giriş");
         }
 
         public IResult UserExists(string email)
         {
-            if (_userService.GetByMail(email) != null)
+            IResult result = BusinessRules.Run(CheckIfUserExist(email));
+            if (result != null)
             {
-                return new ErrorResult(CarMessages.UserAlreadyExists);
+                return new ErrorResult("kullanıcı mevcut");
             }
             return new SuccessResult();
         }
@@ -64,8 +65,17 @@ namespace Business.Concrete
         public IDataResult<AccessToken> CreateAccessToken(User user)
         {
             var claims = _userService.GetClaims(user);
-            var accessToken = _tokenHelper.CreateToken(user, claims);
-            return new SuccessDataResult<AccessToken>(accessToken, CarMessages.AccessTokenCreated);
+            var accessToken = _tokenHelper.CreateToken(user, claims.Data);
+            return new SuccessDataResult<AccessToken>(accessToken, "token oluşturuldu");
+        }
+        private IResult CheckIfUserExist(string email)
+        {
+            var result = _userService.GetByMail(email).Data;
+            if (result != null)
+            {
+                return new ErrorResult();
+            }
+            return new SuccessResult();
         }
     }
 }

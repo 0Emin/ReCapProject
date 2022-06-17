@@ -58,7 +58,7 @@ namespace Core.DataAccess.EntityFramework
             using (TContext context = new TContext())
             {
                 var updatedEntity = context.Entry(entity);
-                updatedEntity.State = EntityState.Modified; //Updated yok, Modified var :)
+                updatedEntity.State = EntityState.Modified; //Updated yok, Modified var 
                 context.SaveChanges();
             }
         }

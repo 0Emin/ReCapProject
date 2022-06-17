@@ -1,6 +1,5 @@
 ﻿using Business.Abstract;
 using Business.Constants;
-using Business.Constants.Messages;
 using Core.Utilities.Business;
 using Core.Utilities.Helpers.FileHelper;
 using Core.Utilities.Results;
@@ -64,15 +63,7 @@ namespace Business.Concrete
 
         public IDataResult<List<CarImage>> GetAll()
         {
-            //return new SuccessDataResult<List<CarImage>>(_carImageDal.GetAll());
-
-
-            if (DateTime.Now.Hour == 14)
-            {
-                return new ErrorDataResult<List<CarImage>>(CarMessages.MaintenanceTime);
-            }
-
-            return new SuccessDataResult<List<CarImage>>(_carImageDal.GetAll(), CarMessages.CarsListed);
+            return new SuccessDataResult<List<CarImage>>(_carImageDal.GetAll());
         }
         private IResult CheckIfCarImageLimit(int carId)
         {

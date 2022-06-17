@@ -4,40 +4,32 @@ using Business.Constants.Messages;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Caching;
 using Core.Aspects.Autofac.Performance;
-using Core.Aspects.Autofac.Transaction;
 using Core.Aspects.Autofac.Validation;
 using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Linq;
+
 namespace Business.Concrete
 {
     public class CarManager : ICarService
     {
         ICarDal _carDal;
-        IBrandService _brandService; //_brandDal şeklinde yapsaydık olmaz 
-
+        IBrandService _brandService;
         public CarManager(ICarDal carDal, IBrandService brandService)
         {
             _carDal = carDal;
             _brandService = brandService;
         }
-        //[SecuredOperation("car.add, admin")]
-        [ValidationAspect(typeof(CarValidator))] //Add metodunu doğrula, CarValidator ü kullanarak 
+
+        [SecuredOperation("admin")]
+        [ValidationAspect(typeof(CarValidator))]
         [CacheRemoveAspect("ICarService.Get")]
         public IResult Add(Car car)
         {
-            //business codes
-            //validation ( doğrulama )
-
-            //Ders 13 II. Kısım:  Bir markada en fazla 10 araba olabilir. En aşağı in
-            IResult result = BusinessRules.Run(CheckIfCarNameExist(car.CarName),
-                CheckIfCarCountOfBrandCorrect(car.BrandId),
-                CheckIfBrandLimitExceded(car.BrandId));
+            IResult result = BusinessRules.Run(CheckIfCarCountOfBrandCorrect(car.BrandId), CheckIfBrandLimitExceded());
 
             if (result != null)
             {
@@ -45,125 +37,109 @@ namespace Business.Concrete
             }
             _carDal.Add(car);
             return new SuccessResult(CarMessages.CarAdded);
-            //if (car.CarName.Length >= 2 && car.DailyPrice > 0)
-            //{
-            //    _carDal.Add(car);
-            //    return new Result(true,"Araba eklendi");   //bu şekilde yazabilmemiz için constructor lazım
-            //}
-            //else
-            //{
-            //    throw new NotImplementedException("Araba ismi minimum 2 karakter olmalı ve araba günlük fiyatı 0'dan büyük olmalıdır");
-            //}
         }
 
+        [SecuredOperation("admin")]
+        [CacheRemoveAspect("ICarService.Get")]
+        public IResult Delete(Car car)
+        {
+            IResult result = BusinessRules.Run(CheckCardIdExist(car.CarId));
 
-        //Aşağıdaki yere IDataResult yazınca return kısmında _carDal ın altını çizmişti, bir "Data" da dönmesini bekliyomuş. Bu yüzden DataResult oluşturduk.
-        [CacheAspect] //key,value ; key cache e verdiğimiz isim ::::: Parametre yoksa mesela GetAll() işlemini : Business.Concrete.CarMnager.GetAll
-                      //Parametreli olanı ise Business.Concrete.CarManager.GetById(1) gibi cache yapabiliriz 
+            if (result != null)
+            {
+                return result;
+            }
+            _carDal.Delete(car);
+            return new SuccessResult(CarMessages.CarDeleted);
+        }
+        [SecuredOperation("admin")]
+        [ValidationAspect(typeof(CarValidator))]
+        [CacheRemoveAspect("ICarService.Get")]
+        public IResult Update(Car car)
+        {
+            IResult result = BusinessRules.Run(CheckCardIdExist(car.CarId));
+
+            if (result != null)
+            {
+                return result;
+            }
+            _carDal.Update(car);
+            return new SuccessResult(CarMessages.CarUpdated);
+        }
+
+        public IDataResult<Car> GetByCarId(int carId)
+        {
+
+            return new SuccessDataResult<Car>(_carDal.Get(c => c.CarId == carId));
+        }
+
+        [CacheAspect]
+        [PerformanceAspect(5)]
         public IDataResult<List<Car>> GetAll()
         {
-            if (DateTime.Now.Hour == 9)
-            {                                         //Generate field yaptık ampulden                     
-                return new ErrorDataResult<List<Car>>(CarMessages.MaintenanceTime);
-            }                                                 //bakım
-            //Generate field yaptık ampulden               
-            return new SuccessDataResult<List<Car>>(_carDal.GetAll(), CarMessages.CarsListed);
 
-            //data =>(_carDal.GetAll());
-        }
-        [CacheAspect]
-        [PerformanceAspect(5)] // bu metodun çalışması 5 saniyeyi geçerse beni uyar,**** eğer bunu Core daki inerceptor lere koyarsak sistemdeki her şeyi takip eder *****
-        public IDataResult<Car> GetById(int carId)
-        {
-            return new SuccessDataResult<Car>(_carDal.Get(c => c.CarId == carId));
+            return new SuccessDataResult<List<Car>>(_carDal.GetAll(), CarMessages.CarListed);
         }
 
         public IDataResult<List<CarDetailDto>> GetCarDetails()
         {
-            return new SuccessDataResult<List<CarDetailDto>>(_carDal.GetCarDetails());
+            var result = new SuccessDataResult<List<CarDetailDto>>(_carDal.GetCarDetails(), CarMessages.CarDetailList);
+            return result;
         }
-
-        public IDataResult<List<Car>> GetCarsByBrandId(int id)
-        {
-            return new SuccessDataResult<List<Car>>(_carDal.GetAll(c => c.BrandId == id));
-        }
-
-        public IDataResult<List<Car>> GetCarsByColorId(int colorid)
-        {
-            return new SuccessDataResult<List<Car>>(_carDal.GetAll(c => c.ColorId == colorid));
-        }
-
-        [ValidationAspect(typeof(CarValidator))]
-        [CacheRemoveAspect("ICarService.Get")] // Sadece get yazsaydık bellekteki içerisinde get olan tüm keyleri iptal etmiş olurduk. Yanş ürünü güncellemişken her yerdeki cache i silerdik
-        public IResult Update(Car car)
-        {
-            if (CheckIfCarCountOfBrandCorrect(car.BrandId).Success)
-            {
-                _carDal.Update(car);
-
-                return new SuccessResult(CarMessages.CarUpdated);
-            }
-            return new ErrorResult();
-        }
-
         private IResult CheckIfCarCountOfBrandCorrect(int brandId)
         {
-            //Select count(*) from cars where brandId=1
-            var result = _carDal.GetAll(c => c.BrandId == brandId).Count;
-            if (result >= 10)
+            if (brandId == 1)
             {
-                return new ErrorResult(CarMessages.CarCountOfBrandError);
+                var result = _carDal.GetAll(c => c.BrandId == brandId).Count;
+                if (result >= 2)
+                {
+                    return new ErrorResult(CarMessages.CarCountOfOpelError);
+                }
             }
             return new SuccessResult();
         }
-
-        private IResult CheckIfCarNameExist(string carName)
+        private IResult CheckIfBrandLimitExceded()
         {
-
-            var result = _carDal.GetAll(c => c.CarName == carName).Count();
-            if (result > 1)
-            {
-                return new ErrorResult(CarMessages.CarNameAlreadyExist);
-            }
-            return new SuccessResult();
-        }
-
-        //private IResult CheckIfCarNameExist(string carName)
-        //{
-
-        //    var result = _carDal.GetAll(c => c.CarName == carName).Any();  //Any burada var mı ? görevi görüyor
-        //    if (result)
-        //    {
-        //        return new ErrorResult(Messages.CarNameAlreadyExist);
-        //    }
-        //    return new SuccessResult();
-        //}
-
-        private IResult CheckIfBrandLimitExceded(int brandId)
-        {
-
             var result = _brandService.GetAll();
-
-            if (result.Data.Count > 15)              //Eğer mevcut marka sayısı 15i geçtiyse yeni araba ekleme 
+            if (result.Data.Count > 15)
             {
-                return new ErrorResult(CarMessages.BrandLimitExceded);
+                return new ErrorResult();
             }
-
             return new SuccessResult();
-
-
-            // Araba için brand nasıl yorumlanıyor? sorusunu aradaığımız için bu kısımda yazdığımız kodda. CarManager kısmına yazdık bu kodları
         }
-
-        [TransactionScopeAspect]
-        public IResult AddTransactionalTest(Car car)
+        private IResult CheckCardIdExist(int carId)
         {
-            throw new NotImplementedException();
+            var result = _carDal.GetAll(c => c.CarId == carId);
+            if (result != null)
+            {
+                return new ErrorResult();
+            }
+            return new SuccessResult();
         }
 
-        public IDataResult<List<Car>> GetAllByBrandId(int brandId)
+        public IDataResult<List<Car>> GetByBrandId(int brandId)
         {
             return new SuccessDataResult<List<Car>>(_carDal.GetAll(c => c.BrandId == brandId));
+        }
+
+        public IDataResult<List<CarDetailDto>> GetCarDetailsByBrandId(int brandId)
+        {
+            return new SuccessDataResult<List<CarDetailDto>>(_carDal.GetCarDetailsByBrandId(brandId));
+        }
+
+        public IDataResult<List<CarDetailDto>> GetCarDetailsByColorId(int colorId)
+        {
+            return new SuccessDataResult<List<CarDetailDto>>(_carDal.GetCarDetailsByColorId(colorId));
+        }
+
+        public IDataResult<List<CarDetailDto>> GetCarDetailsByCarId(int carId)
+        {
+            return new SuccessDataResult<List<CarDetailDto>>(_carDal.GetCarDetailsByCarId(carId));
+        }
+
+        public IDataResult<List<CarDetailDto>> GetCarDetailsByColorAndByBrand(int colorId, int brandId)
+        {
+            return new SuccessDataResult<List<CarDetailDto>>(_carDal.GetCarDetailsByColorAndByBrand(colorId, brandId));
         }
     }
 }
