@@ -36,8 +36,8 @@ namespace Business.DependencyResolvers.Autofac
             builder.RegisterType<CustomerManager>().As<ICustomerService>().SingleInstance();
             builder.RegisterType<EfCustomerDal>().As<ICustomerDal>().SingleInstance();
 
-            //builder.RegisterType<RentalManager>().As<IRentalService>().SingleInstance();//AÇILACAK
-            //builder.RegisterType<EfRentalDal>().As<IRentalDal>().SingleInstance();
+            builder.RegisterType<RentalManager>().As<IRentalService>().SingleInstance();//AÇILACAK
+            builder.RegisterType<EfRentalDal>().As<IRentalDal>().SingleInstance();
 
             builder.RegisterType<CardManager>().As<ICardService>().SingleInstance();
             builder.RegisterType<EfCardDal>().As<ICardDal>().SingleInstance();

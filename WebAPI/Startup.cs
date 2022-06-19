@@ -18,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,6 +47,22 @@ namespace WebAPI
             //services.AddSingleton<HttpContextAccessor, HttpContextAccessor>();  //15. DERS BAÞINDA YAZILDI sonra sildik core da zaten CoreModule kýsmýnda buralarý kurumsallaþtýrmaya baþladýk-----------------
 
             services.AddCors();
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "1.0.0",
+                    Title = "API Swagger",
+                    Description = "Api Swagger Documentation",
+                    TermsOfService = new Uri("http://swagger.io/terms/"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Emin Pala"
+
+                    }
+                });
+            });
 
             var tokenOptions = Configuration.GetSection("TokenOptions").Get<TokenOptions>();
 
@@ -81,6 +98,14 @@ namespace WebAPI
             app.UseCors(builder=>builder.WithOrigins("http://localhost:4200").AllowAnyHeader()); //buradan bir istek gelirse ona izin ver. 
 
             app.UseHttpsRedirection();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", " API V1");
+                c.RoutePrefix = string.Empty;
+            });
+
 
             app.UseRouting();
 
