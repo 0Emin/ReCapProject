@@ -46,7 +46,16 @@ namespace WebAPI
 
             //services.AddSingleton<HttpContextAccessor, HttpContextAccessor>();  //15. DERS BAÞINDA YAZILDI sonra sildik core da zaten CoreModule kýsmýnda buralarý kurumsallaþtýrmaya baþladýk-----------------
 
-            services.AddCors();
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(
+                    builder =>
+                    {
+                        builder.WithOrigins("https://localhost:44341", "http://localhost:4200")
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod();
+                    });
+            });
 
             services.AddSwaggerGen(c =>
             {
@@ -98,6 +107,7 @@ namespace WebAPI
             app.UseCors(builder=>builder.WithOrigins("http://localhost:4200").AllowAnyHeader()); //buradan bir istek gelirse ona izin ver. 
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles(); //bu satýr sayesinde fotoðraflarý getirebildik !!!!!!!
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
