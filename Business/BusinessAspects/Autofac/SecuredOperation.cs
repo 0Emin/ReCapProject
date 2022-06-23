@@ -1,5 +1,4 @@
-﻿using Business.Constants;
-using Business.Constants.Messages;
+﻿using Business.Constants.Messages;
 using Castle.DynamicProxy;
 using Core.Extensions;
 using Core.Utilities.Interceptors;
@@ -7,8 +6,6 @@ using Core.Utilities.IoC;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Business.BusinessAspects.Autofac
 {//Yetki kontrolü yapacağız, business ta if li kodlar yazıp orayı doldurmayalım diye buraya yazıp oradan çağırırız. 
@@ -25,7 +22,7 @@ namespace Business.BusinessAspects.Autofac
             //Biz API da injection yaptık. IoC kullanıyoruz güzel fakat bu bir windows form uygulaması olsayı onda nasıl kullanacaktık? o dependency leri yakalayabilmek için " Service Tool " yazmışız
             //Injection altyapısını aynen okuyabilmemize yarayan bir araç olacak
         }
-        //OnBefore MethodInterception dan gelior
+        //OnBefore MethodInterception dan geliyor
         protected override void OnBefore(IInvocation invocation)
         {
             var roleClaims = _httpContextAccessor.HttpContext.User.ClaimRoles();

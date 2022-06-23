@@ -76,7 +76,7 @@ namespace Business.Concrete
         {
             List<int> totalAmount = new List<int>();
             var dateDifference = (returnDate - rentDate).Days;
-            //var datesOfDifference = dateDifference.Days;
+            
             var dailyCarPrice = decimal.ToInt32(_carDal.Get(c => c.CarId == carId).DailyPrice);
 
             var totalPrice = dateDifference * dailyCarPrice;

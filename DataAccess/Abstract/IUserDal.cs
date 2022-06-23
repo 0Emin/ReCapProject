@@ -9,5 +9,5 @@ namespace DataAccess.Abstract
     public interface IUserDal : IEntityRepository<User>
     {
         List<OperationClaim> GetClaims(User user);
-    }//join atacağım için bu metodu koydum. OperationClaimlerini çekmek istiyorum veritabanından
+    }//join tılacağı için bu metod koyuldu. Operationclaimler çekilmek isteniyor veritabanından
 }

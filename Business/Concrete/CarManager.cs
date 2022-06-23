@@ -24,9 +24,10 @@ namespace Business.Concrete
             _brandService = brandService;
         }
 
-        [SecuredOperation("admin")]
+        
+  
+    
         [ValidationAspect(typeof(CarValidator))]
-        [CacheRemoveAspect("ICarService.Get")]
         public IResult Add(Car car)
         {
             IResult result = BusinessRules.Run(CheckIfCarCountOfBrandCorrect(car.BrandId), CheckIfBrandLimitExceded());
@@ -39,8 +40,7 @@ namespace Business.Concrete
             return new SuccessResult(CarMessages.CarAdded);
         }
 
-        [SecuredOperation("admin")]
-        [CacheRemoveAspect("ICarService.Get")]
+       
         public IResult Delete(Car car)
         {
             IResult result = BusinessRules.Run(CheckCardIdExist(car.CarId));
@@ -52,9 +52,9 @@ namespace Business.Concrete
             _carDal.Delete(car);
             return new SuccessResult(CarMessages.CarDeleted);
         }
-        [SecuredOperation("admin")]
+        
         [ValidationAspect(typeof(CarValidator))]
-        [CacheRemoveAspect("ICarService.Get")]
+
         public IResult Update(Car car)
         {
             IResult result = BusinessRules.Run(CheckCardIdExist(car.CarId));
@@ -73,8 +73,7 @@ namespace Business.Concrete
             return new SuccessDataResult<Car>(_carDal.Get(c => c.CarId == carId));
         }
 
-        [CacheAspect]
-        [PerformanceAspect(5)]
+       
         public IDataResult<List<Car>> GetAll()
         {
 
